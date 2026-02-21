@@ -1,18 +1,18 @@
 MODE: STUDENT PROMPT FACTORY
 
 CONTEXT
-You are a Senior Machine Learning Operations (MLOps) Engineer mentoring a Junior Data Scientist team that mostly works in Jupyter notebooks, with very basic knowledge of Python programming, Git workflow, and MLOps
-We have a working notebook, but we must refactor reusable logic into a production-oriented repository (the Golden Repo)
+You are a Senior Machine Learning Operations (MLOps) Engineer mentoring Junior Data Scientists who mostly work in Jupyter notebooks and have basic Python, Git workflow, and MLOps knowledge
+We have a working notebook, but we must refactor reusable logic into a production oriented repository (the Golden Repo)
 
-This is not a copy paste exercise!
-The files you generate must be BOTH:
-- runnable scaffolding for a simple end-to-end pipeline (about 50% or less, and the rest must be filled in and completed by the student)
-- a tutorial that teaches MLOps fundamentals, explaining WHY each file exists and WHY we structure code this way, helping students build key components and understand the main MLOps trade-offs
+This is not a copy paste exercise
+The files you generate must be BOTH
+- runnable scaffolding for a simple end to end pipeline, the code MUST run successfully end to end immediately after copy pasting, using generic dummy or baseline logic that students will later overwrite
+- a tutorial that explains WHY each file exists, HOW it reduces delivery risk, and HOW it increases business value
 
 REPO ASSUMPTIONS
 - We run commands from the repository root
 - Existing folders already exist: data/raw, data/processed, models, reports
-- We run the pipeline using: `python -m src.main`
+- We run the pipeline using: python -m src.main
 - The following files already exist as empty placeholders and we will overwrite them by copy paste:
   - environment.yml
   - src/load_data.py
@@ -22,17 +22,37 @@ REPO ASSUMPTIONS
   - src/evaluate.py
   - src/infer.py
   - src/main.py
-- You must ALSO generate one additional file for simple helper functions, keep it simple and transparent, no object oriented programming
+- You must ALSO generate one additional file for simple helper functions, keep it simple and transparent, no object oriented programming:
   - src/utils.py
 
-At a later stage, we will incorporate:
-- Configuration management via config.yml
-- Standard library logging
-- Full error handling using try/except, raise, and sys.exit
-- Full test suite coverage using pytest
+IMPORTANT DIRECTIVES
+- Manual materialization only
+- In section C) Folder/File Steps, do NOT output terminal commands like mkdir, touch, cp
+- Only list the files students must create or overwrite by copy paste, in order
+
+PACKAGE MODE AND IMPORTS
+We run as a module from repo root using: python -m src.main
+Therefore treat src as a formal Python package
+
+Requirements
+- In section C) Folder/File Steps, include creation of src/__init__.py
+- src/__init__.py must be COMPLETELY empty, no docstring, no variables
+- All internal imports must use absolute src. paths
+- Do NOT modify sys.path
+
+Examples to USE
+- from src.utils import load_csv
+- from src.train import train_model
+- import src.validate
+
+Do NOT use
+- import utils
+- from . import utils
+- from ..train import train_model
+- sys.path.append(...)
 
 GOAL
-Generate richly documented, copy paste ready scaffolding templates (boilerplate code) for these files, in this exact order:
+Generate richly documented, copy paste ready scaffolding templates for these files, in this exact order:
 1) environment.yml
 2) src/utils.py
 3) src/load_data.py
@@ -43,97 +63,131 @@ Generate richly documented, copy paste ready scaffolding templates (boilerplate 
 8) src/infer.py
 9) src/main.py
 
-Students will manually harvest working snippets from their notebook and refactor them into clearly marked TODO blocks (or inline where applicable)
-The scaffolding must allow flexibility while acting as guidance and handrails
-
 NON NEGOTIABLE CONSTRAINTS
 
-1) Student-friendly simplicity
+1) Student friendly simplicity
 - No classes
 - No async
-- No scikit-learn pipelines enforced yet (we will do this later)
+- No scikit-learn pipelines enforced yet
 - No advanced type checking, no over-defensive validation helpers
 - Avoid clever abstractions
-- Prefer readability over rigor for now
+- Prefer readability over rigor
 
-2) Educational documentation (mandatory)
-Every Python file must begin with a module docstring that starts with:
+2) THE DUMMY BASELINE REQUIREMENT (crucial for runnable scaffolding)
+The scaffolding MUST run end to end immediately after copy paste, even before students paste notebook code
+You MUST provide functional, generic baseline logic inside your functions
+Do NOT return None or leave functions empty
+
+Baseline rules
+- load_data.py baseline:
+  - Attempts to load the CSV using utils.load_csv
+  - If the file does not exist, it MUST create a tiny deterministic sample CSV file at the requested path, then load it
+  - It MUST print a clear message that a sample dataset was created for scaffolding only and must be replaced with the real dataset
+- clean_data.py baseline: returns a safe copy of the raw dataframe (identity transform), while accepting target_column
+- validate.py baseline: fails fast only for obvious issues (empty df, missing required columns)
+- main.py baseline: includes a working train test split and uses a small sample for inference
+- train.py baseline instantiates and fits:
+  - LinearRegression for regression
+  - LogisticRegression for classification
+- evaluate.py baseline computes and returns:
+  - RMSE for regression
+  - F1 score for classification
+- infer.py baseline calls model.predict and returns a DataFrame with a single column named prediction
+
+Students will overwrite or extend these baselines inside TODO_STUDENT blocks
+
+3) REQUIRED PUBLIC API CONTRACTS (do not rename)
+Do NOT rename these functions
+Do NOT change these signatures
+All imports across files must match these names exactly
+
+- src/utils.py
+  - load_csv(filepath: Path) -> pd.DataFrame
+  - save_csv(df: pd.DataFrame, filepath: Path) -> None
+  - save_model(model, filepath: Path) -> None
+  - load_model(filepath: Path)
+
+- src/load_data.py
+  - load_raw_data(raw_data_path: Path) -> pd.DataFrame
+
+- src/clean_data.py
+  - clean_dataframe(df_raw: pd.DataFrame, target_column: str) -> pd.DataFrame
+
+- src/validate.py
+  - validate_dataframe(df: pd.DataFrame, required_columns: list) -> bool
+
+- src/train.py
+  - train_model(X_train: pd.DataFrame, y_train: pd.Series, problem_type: str)
+
+- src/evaluate.py
+  - evaluate_model(model, X_test: pd.DataFrame, y_test: pd.Series, problem_type: str) -> float
+
+- src/infer.py
+  - run_inference(model, X_infer: pd.DataFrame) -> pd.DataFrame
+
+- src/main.py
+  - must define main() and include if __name__ == "__main__": main()
+
+4) Educational documentation (strict templates)
+Every Python file must begin with this exact module docstring shape
+
+"""
 Educational Goal:
-Then explain:
-- Why this module exists in an MLOps system
-- What responsibility it owns (separation of concerns)
-- How it fits into the end-to-end pipeline (expected inputs and outputs, contracts)
-Also add these lines in every module docstring:
+- Why this module exists in an MLOps system: ...
+- Responsibility (separation of concerns): ...
+- Pipeline contract (inputs and outputs): ...
+
 TODO: Replace print statements with standard library logging in a later session
 TODO: Any temporary or hardcoded variable or parameter will be imported from config.yml in a later session
+"""
 
-Every public function must have a docstring that explains:
-- Inputs
-- Outputs
-- Why the contract matters for reliable ML delivery
+Every public function must have this exact function docstring shape
 
-3) Visibility with print statements (mandatory)
-- Every function must start with a print() statement that describes what the function is doing
-- This is critical because students need feedback while running `python -m src.main`
-- Add a brief comment near print() stating it will be replaced by logging later
-- Add a brief comment near any hardcoded values stating they will later come from config.yml
+"""
+Inputs:
+- ...
+Outputs:
+- ...
+Why this contract matters for reliable ML delivery:
+- ...
+"""
 
-4) Imports must use absolute package paths (critical)
-Because we run the pipeline as a module from the repository root using: `python -m src.main`, you must treat `src` as a formal Python package
+5) Visibility with print statements (mandatory)
+- Every function must start with a print() describing what it is doing
+- Add an inline comment: # TODO: replace with logging later
 
-Requirements:
-- In your "Folder/File Steps" section, include creation of `src/__init__.py`
-- Leave `src/__init__.py` COMPLETELY empty, no docstrings, no variables
-- Keep imports readable:
-  - Standard library imports first
-  - Third-party imports next
-  - Local `src.` imports last
-- All internal imports must use the absolute `src.` prefix
-
-Examples to USE:
-- `from src.utils import load_csv`
-- `from src.train import train_model`
-- `import src.validate`
-
-Do NOT use:
-- `import utils` (implicit relative)
-- `from . import utils` (explicit relative)
-- `from ..train import train_model` (explicit relative)
-- Do NOT modify sys.path (no sys.path.append(...))
-
-Leave students the opportunity to add a small number of additional imports if needed, but always explain why in comments
-
-5) Artifacts required (simple proof of pipeline)
-The pipeline must create these artifacts:
+6) Artifacts required (simple proof of pipeline)
+The pipeline must create these artifacts with these exact paths
 - data/processed/clean.csv
-- models/model.joblib (joblib based)
+- models/model.joblib
 - reports/predictions.csv
 
-Keep it minimal:
-- Do not save plots or metric files yet
-- Metrics print to console only for now
-Later we will use Weights & Biases (W&B) to store, track, and manage artifacts
+Keep it minimal
+- Do not save plots or metric files
+- Metrics print to console only
 
-6) Evaluation must support regression OR classification
-- In main.py, students set:
-  PROBLEM_TYPE = "regression" or "classification"
+7) Evaluation must support regression OR classification
+- In main.py, students set PROBLEM_TYPE = "regression" or "classification"
 - evaluate.py must support both:
   - regression default metric: RMSE (Root Mean Squared Error)
   - classification default metric: F1 score
 - The architecture must make it easy for students to swap metrics via TODO blocks
 
-7) The Student Action Block (must appear in every function)
-You must NOT generate full data science logic for cleaning, training, metrics, or inference postprocessing
-Instead, every function must include at least one explicit student-owned block using this EXACT format
+8) Student Action Blocks (must appear in every function)
+You must NOT generate dataset specific logic for cleaning, feature selection, metrics customization, or inference postprocessing
+Instead, every function must include at least one student owned block using this EXACT format
+Place the Student Action Block close to the baseline logic it is meant to overwrite or extend
 
 # --------------------------------------------------------
 # START STUDENT CODE
 # --------------------------------------------------------
-# TODO_STUDENT: Paste your notebook logic here.
+# TODO_STUDENT: Paste your notebook logic here to replace or extend the baseline
+# Why: Explain why this step varies per dataset or business context
 # Examples:
 # 1. ...
 # 2. ...
 #
+# Optional forcing function (leave commented)
 # raise NotImplementedError("Student: You must implement this logic to proceed!")
 #
 # Placeholder (Remove this after implementing your code):
@@ -142,21 +196,15 @@ print("Warning: Student has not implemented this section yet")
 # END STUDENT CODE
 # --------------------------------------------------------
 
-Important:
-- Each TODO_STUDENT block must explain what the student must paste and WHY
-- Each TODO_STUDENT block must give 2 to 4 concrete examples to guide beginners
-- Each function must have at least one minimum line or variable the student must change
-  - Example: TARGET_COLUMN in main.py
-  - Example: file name for RAW_DATA_PATH
-  - Example: model choice in train.py
+Rules
+- Do NOT instruct students to uncomment the NotImplementedError line
+- The pipeline must still run end to end even if students do nothing
 
-Exception for utils.py:
-- Because utils.py is boilerplate I/O plumbing, you may keep the Student Action Block small and focused on parameters and filepaths only
-- You may implement pd.read_csv, df.to_csv, joblib.dump, and joblib.load directly
-
-8) Avoid __future__ imports
-Do NOT use: from __future__ import annotations
-Prefer not to include it
+Exception for utils.py
+- utils.py is boilerplate I/O plumbing
+- Implement pd.read_csv, df.to_csv, joblib.dump, joblib.load directly
+- Include a small TODO_STUDENT block in each function focused only on filepaths and parameters
+- Do NOT print the generic warning line in utils.py
 
 ENVIRONMENT REQUIREMENT (exact content)
 environment.yml must be EXACTLY:
@@ -175,66 +223,43 @@ dependencies:
   - ipykernel
   - pip
 
-UTILS.PY REQUIREMENT (minimal, transparent helpers)
-`src/utils.py` must implement ONLY:
-- `load_csv(filepath: Path) -> pd.DataFrame`
-- `save_csv(df: pd.DataFrame, filepath: Path) -> None`
-- `save_model(model, filepath: Path) -> None` using `joblib`
-- `load_model(filepath: Path)` using `joblib`
-
-Constraints for utils.py:
-- Use `pathlib.Path` for all filepaths
-- Use `print()` statements with a comment noting they will be replaced by standard library logging in a later session
-- Do NOT add YAML parsing, config loaders, or extra helpers
-- Because utils.py is boilerplate I/O plumbing, you MAY implement the core logic directly:
-  - `pd.read_csv(...)`
-  - `df.to_csv(...)`
-  - `joblib.dump(...)`
-  - `joblib.load(...)`
-
-Determinism and ergonomics requirements:
-- `save_csv` and `save_model` must create the parent folder if needed:
-  - `filepath.parent.mkdir(parents=True, exist_ok=True)`
-- `save_csv` must write deterministic outputs by default:
-  - `index=False`
-
-Student ownership in utils.py (small, focused TODO_STUDENT):
-- Include one small TODO_STUDENT block per function where students must confirm or adjust at least one parameter
-- Examples:
-  - choose `sep=","` or `sep=";"`
-  - confirm `index=False` when saving
-  - add `dtype=` or `parse_dates=` only if their dataset needs it
-  - confirm the exact `filepath` passed from main.py
+UTILS.PY REQUIREMENTS
+- Use pathlib.Path
+- save_csv and save_model must create parent folders:
+  filepath.parent.mkdir(parents=True, exist_ok=True)
+- save_csv must default to index=False
 
 VALIDATE.PY REQUIREMENT (simple, fail fast)
-src/validate.py must be simple and beginner-friendly:
 - Print at start
 - If df is empty, raise ValueError with a clear message
-- Include a TODO_STUDENT block for required columns and simple checks
+- Include a student block for required columns and simple checks
 - Return True if valid
 
-MAIN.PY REQUIREMENT (script-style, high level story)
-main.py must be formatted like a notebook-friendly script:
+MAIN.PY REQUIREMENT (script style, high level story)
+main.py must be formatted like a notebook friendly script
 1) Imports
-2) A clear configuration block using separators like:
-   # --------------------------------------------------------
-   # CONFIGURATION
-   # --------------------------------------------------------
-   This block must include TODO_STUDENT fields:
-   - RAW_DATA_PATH with a placeholder filename
-   - TARGET_COLUMN placeholder
-   - PROBLEM_TYPE toggle
+2) A clear CONFIGURATION block using separators like:
+
+# --------------------------------------------------------
+# CONFIGURATION
+# --------------------------------------------------------
+
+This block must include TODO_STUDENT fields:
+- RAW_DATA_PATH with a placeholder filename, default to Path("data/raw/sample.csv")
+- TARGET_COLUMN placeholder, default to "target" so the sample dataset works out of the box
+- PROBLEM_TYPE toggle
+
 3) def main(): with clear step separators and print statements:
-   - Load
-   - Clean
-   - Save processed CSV
-   - Validate
-   - Train/test split (done in main.py for clarity)
-   - Train model
-   - Save model.joblib
-   - Evaluate on held-out test
-   - Inference on example data
-   - Save predictions.csv
+- Load
+- Clean
+- Save processed CSV
+- Validate
+- Train test split (done in main.py for clarity)
+- Train model
+- Save model.joblib
+- Evaluate on held out test
+- Inference on example data
+- Save predictions.csv
 
 OUTPUT FORMAT (strict)
 Return sections A to F exactly in this order, then stop
@@ -243,10 +268,14 @@ Do not output anything else outside these sections
 A) Goal
 B) Prerequisites
 C) Folder/File Steps
-D) File Contents (full copy paste contents for each file in the required order)
+D) File Contents (full code for all files, in the required order)
 E) Run/Verify (terminal commands)
 F) Definition of Done (checklist)
 
-NOW GENERATE THE OUTPUT
-Produce A to F and all file contents exactly as specified above
-Keep the code readable, tutorial-like, and suitable for beginners who only used Jupyter notebooks before
+FINAL SELF CHECK (do not print this check in the output)
+- No shell commands in section C
+- src/__init__.py specified as completely empty
+- All function signatures match the Public API Contracts exactly
+- Dummy baseline logic exists so the pipeline runs end to end, including creating a sample CSV file if the raw CSV is missing
+- All internal imports use src. absolute paths
+- Required artifacts use the exact required paths and filenames
