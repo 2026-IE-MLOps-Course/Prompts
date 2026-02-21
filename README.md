@@ -1,53 +1,139 @@
 # 🚀 MLOps Course: AI Prompt Library
 
-*“Most Artificial Intelligence projects do not fail because of poor models... they fail because they never leave the notebook!”*
+*“Most Artificial Intelligence projects do not fail because of poor models... they fail because they never leave the notebook.”*
 
-This repository contains the AI prompts used in the course **MLOps: From Notebook to Production** (Master in Business Analytics & Data Science). 
+This repository contains the AI prompts used in the course **MLOps: From Notebook to Production** (Master in Business Analytics & Data Science).
 
-These prompts are designed to generate **scaffolding and boilerplate** so you can spend your time on what actually matters:
-* Understanding core MLOps concepts (Separation of Concerns, DRY, Reproducibility).
-* Making sound engineering trade-offs.
-* Connecting technical decisions to real-world business value.
+These prompts are designed to generate scaffolding and boilerplate so you can focus on what actually matters:
 
-These prompts are not answers. They are **accelerators**.
+- Understanding core MLOps concepts (Separation of Concerns, DRY, Reproducibility, Traceability)
+- Making sound engineering trade-offs
+- Connecting technical decisions to real-world business value
+
+These prompts are not answers. They are accelerators.
 
 ---
 
-## 🛠️ How to Use These Prompts
+# 🛠️ How to Use These Prompts
 
-To get the most out of these tools, you must act as an architect, not a typist. 
+To get the most value from these tools, you must act as an architect, not a typist.
 
-**The Recommended Workflow:**
+## Recommended Workflow
+
 1. Open the `.txt` prompt for the current session.
-2. Paste it into your AI assistant, specifically instructing it to use **"Study"** or **"Guided Learning"** mode.
+2. Paste it into your AI assistant using Study or Guided Learning mode.
 3. Generate the scaffolding.
-4. **Stop and Read.** Do not run anything yet. 
-5. Manually create the files in your local environment and paste the generated boilerplate.
-6. Hunt down the `TODO_STUDENT` blocks and implement your own Data Science logic.
-7. Run the verification commands. If it breaks, attempt to fix it yourself by reading the error trace before asking the AI for the answer.
+4. Stop and read. Do not run anything yet.
+5. Manually create the files in your local environment.
+6. Paste the generated boilerplate into the appropriate files.
+7. Locate all `TODO_STUDENT` blocks.
+8. Replace the baseline logic with your own notebook logic.
+9. Run the verification commands.
+10. If something breaks, read the error trace and attempt to fix it before asking the AI for help.
 
 ---
 
-## 🛑 The "Do Not Paste Until..." Checklist (Non-Negotiable)
+# 🔄 The Zero-to-One Experience (Important)
 
-You are expected to use AI to support your learning, not replace it. If you blindly copy AI output, your pipeline *will* break during the final deployment, and you will not know how to fix it.
+The scaffolding is designed to run successfully out of the box.
 
-Before you commit any generated code into your repository, you must be able to answer these five questions:
+When you execute:
 
-* **The English Translation:** What does this code do, in plain English?
-* **The Contract:** What inputs does it expect, and what outputs does it produce?
-* **The Assumptions:** What assumptions does it make about the data or the system environment?
-* **The Quality Gate:** What could break in production, and how would this pipeline detect it?
-* **The "So What?":** What business risk does this code reduce, or what business value does it enable?
+    python -m src.main
 
-**If you cannot answer these, you are not ready to paste it.**
+The pipeline will:
+
+- Attempt to load your raw dataset
+- If the file does not exist:
+  - Automatically create a small deterministic sample dataset at `data/raw/sample.csv`
+  - Print a clear message explaining that this dataset is for scaffolding only
+  - Train a simple baseline model
+  - Produce the required artifacts
+
+This guarantees a smooth first run and allows you to see the architecture working before integrating your real logic.
 
 ---
 
-## 🏆 The Quality Bar 
+## ⚠️ Critical Rule
+
+The generated sample dataset is NOT your assignment dataset.
+
+Before doing real modeling work, you must:
+
+1. Replace the sample CSV in `data/raw/` with your real dataset
+2. Update `RAW_DATA_PATH` in `src/main.py`
+3. Update `TARGET_COLUMN`
+4. Replace baseline logic inside the `TODO_STUDENT` blocks
+
+If you accidentally train on the sample dataset, your model is meaningless.
+
+---
+
+# 🛑 The Do Not Paste Until Checklist
+
+Before committing any generated code, you must be able to answer:
+
+- What does this code do, in plain English?
+- What inputs does it expect, and what outputs does it produce?
+- What assumptions does it make about the data or the environment?
+- What could break in production, and how would the pipeline detect it?
+- What business risk does this reduce? What business value does this enable?
+
+If you cannot answer these questions, you are not ready to paste the code.
+
+---
+
+# 🧠 Why This Architecture Matters
+
+This repository structure mirrors real-world MLOps systems.
+
+It enforces:
+
+- Separation of Concerns
+- Reproducibility
+- Traceability
+- Fail Fast principles
+- Baseline First, Then Improve
+
+This is how production AI systems are built. Not in a notebook cell-by-cell.
+
+---
+
+# 🏆 The Quality Bar
 
 Any code and documentation you commit using these tools must be:
-* **Reproducible:** Runs flawlessly on a clean machine (using your `environment.yml`).
-* **Readable:** Easily understood by a peer who hasn't seen the code before.
-* **Traceable:** Uses clear artifacts, filenames, and sequential pipeline steps.
-* **Aligned:** Matches the specific session goals without introducing overly clever, unnecessary complexity.
+
+- Reproducible
+- Readable
+- Traceable
+- Deterministic
+- Aligned with session goals
+
+---
+
+# 🔐 Academic Integrity
+
+These prompts are learning accelerators.
+
+Blind copy-paste will surface during debugging, deployment, and exams.
+
+You are accountable for everything you commit and present.
+
+AI is a productivity tool. It is not a substitute for understanding.
+
+---
+
+# 🎯 Final Reminder
+
+The goal of this course is not to learn how to prompt AI.
+
+The goal is to understand:
+
+- How to move from notebook to production
+- How to design reliable pipelines
+- How to reduce model risk
+- How to generate measurable business value from AI systems
+
+The prompts help you build the scaffolding.
+
+You are responsible for building the system.
