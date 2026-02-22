@@ -18,6 +18,7 @@ REPO ASSUMPTIONS
   - src/load_data.py
   - src/clean_data.py
   - src/validate.py
+  - src/features.py
   - src/train.py
   - src/evaluate.py
   - src/infer.py
@@ -42,6 +43,7 @@ Requirements
 
 Examples to USE
 - from src.utils import load_csv
+- from src.features import get_feature_preprocessor
 - from src.train import train_model
 - import src.validate
 
@@ -58,18 +60,19 @@ Generate richly documented, copy paste ready scaffolding templates for these fil
 3) src/load_data.py
 4) src/clean_data.py
 5) src/validate.py
-6) src/train.py
-7) src/evaluate.py
-8) src/infer.py
-9) src/main.py
+6) src/features.py
+7) src/train.py
+8) src/evaluate.py
+9) src/infer.py
+10) src/main.py
 
 NON NEGOTIABLE CONSTRAINTS
 
 1) Student friendly simplicity
 - No classes
 - No async
-- No scikit-learn pipelines enforced yet
-- No advanced type checking, no over-defensive validation helpers
+- Use scikit-learn Pipeline + ColumnTransformer for leakage prevention and simple deployment
+- No advanced type checking, no over-defensive validation helpers (use Optional and List from typing for Python 3.9 compatibility)
 - Avoid clever abstractions
 - Prefer readability over rigor
 
@@ -81,18 +84,31 @@ Do NOT return None or leave functions empty
 Baseline rules
 - load_data.py baseline:
   - Attempts to load the CSV using utils.load_csv
-  - If the file does not exist, it MUST create a tiny deterministic sample CSV file at the requested path, then load it
-  - It MUST print a clear message that a sample dataset was created for scaffolding only and must be replaced with the real dataset
+  - If the file does not exist, it MUST create a tiny deterministic sample CSV file at the requested path (with columns: "num_feature", "cat_feature", "target"), then load it.
+  - It MUST print a LOUD, explicit message that a dummy dataset with hardcoded columns was created for scaffolding only, and that students must replace it and update their SETTINGS.
 - clean_data.py baseline: returns a safe copy of the raw dataframe (identity transform), while accepting target_column
 - validate.py baseline: fails fast only for obvious issues (empty df, missing required columns)
-- main.py baseline: includes a working train test split and uses a small sample for inference
-- train.py baseline instantiates and fits:
-  - LinearRegression for regression
-  - LogisticRegression for classification
+- features.py baseline:
+  - Builds and returns a ColumnTransformer recipe from configuration lists.
+  - Does NOT accept DataFrame data and does NOT call .fit().
+  - Uses KBinsDiscretizer for quantile binning (applied only to numeric columns) and OneHotEncoder for categorical columns.
+  - Must include a try/except block for OneHotEncoder (try sparse_output=False, except TypeError fallback to sparse=False) to support older scikit-learn versions.
+  - Sets remainder="drop" on the ColumnTransformer.
+- main.py baseline:
+  - Includes a working train test split (done in main.py for clarity) BEFORE building the feature recipe to prevent leakage.
+  - Uses a nested SETTINGS dictionary for configuration (acting as a bridge to YAML).
+  - The SETTINGS dictionary MUST be pre-configured to work with the dummy CSV (e.g., target_column="target", numeric_passthrough=["num_feature"], categorical_onehot=["cat_feature"]) so the pipeline runs perfectly out of the box.
+  - Passes the preprocessor into train_model.
+- train.py baseline instantiates and fits a Pipeline:
+  - Pipeline step 1 is ("preprocess", preprocessor)
+  - Pipeline step 2 is ("model", estimator)
+  - Ridge() for regression
+  - LogisticRegression(max_iter=500) for classification
 - evaluate.py baseline computes and returns:
-  - RMSE for regression
-  - F1 score for classification
-- infer.py baseline calls model.predict and returns a DataFrame with a single column named prediction
+  - RMSE (as a float) for regression
+  - F1 score (as a float) for classification. For classification, use f1_score with average='weighted' so multiclass works out of the box.
+  - Must call model.predict(X_test) where model is the Pipeline
+- infer.py baseline calls model.predict and returns a DataFrame with a SINGLE column named "prediction" that preserves the input index (do not append it to the original DataFrame).
 
 Students will overwrite or extend these baselines inside TODO_STUDENT blocks
 
@@ -116,8 +132,11 @@ All imports across files must match these names exactly
 - src/validate.py
   - validate_dataframe(df: pd.DataFrame, required_columns: list) -> bool
 
+- src/features.py
+  - get_feature_preprocessor(quantile_bin_cols: Optional[List[str]] = None, categorical_onehot_cols: Optional[List[str]] = None, numeric_passthrough_cols: Optional[List[str]] = None, n_bins: int = 3)
+
 - src/train.py
-  - train_model(X_train: pd.DataFrame, y_train: pd.Series, problem_type: str)
+  - train_model(X_train: pd.DataFrame, y_train: pd.Series, preprocessor, problem_type: str)
 
 - src/evaluate.py
   - evaluate_model(model, X_test: pd.DataFrame, y_test: pd.Series, problem_type: str) -> float
@@ -167,10 +186,8 @@ Keep it minimal
 - Metrics print to console only
 
 7) Evaluation must support regression OR classification
-- In main.py, students set PROBLEM_TYPE = "regression" or "classification"
-- evaluate.py must support both:
-  - regression default metric: RMSE (Root Mean Squared Error)
-  - classification default metric: F1 score
+- In main.py, students set PROBLEM_TYPE via the SETTINGS dict ("regression" or "classification")
+- evaluate.py must support both dynamically based on this parameter, returning a single float (RMSE or F1).
 - The architecture must make it easy for students to swap metrics via TODO blocks
 
 8) Student Action Blocks (must appear in every function)
@@ -221,6 +238,8 @@ dependencies:
   - joblib
   - jupyter
   - ipykernel
+  - pytest
+  - pytest-cov
   - pip
 
 UTILS.PY REQUIREMENTS
@@ -238,24 +257,23 @@ VALIDATE.PY REQUIREMENT (simple, fail fast)
 MAIN.PY REQUIREMENT (script style, high level story)
 main.py must be formatted like a notebook friendly script
 1) Imports
-2) A clear CONFIGURATION block using separators like:
-
-# --------------------------------------------------------
-# CONFIGURATION
-# --------------------------------------------------------
-
-This block must include TODO_STUDENT fields:
-- RAW_DATA_PATH with a placeholder filename, default to Path("data/raw/sample.csv")
-- TARGET_COLUMN placeholder, default to "target" so the sample dataset works out of the box
-- PROBLEM_TYPE toggle
+2) A clear CONFIGURATION block using a SETTINGS dictionary bridge.
+   - Example keys: "is_example_config": True, "target_column": "target", "problem_type": "regression"
+   - Must include a "features" sub-dictionary with lists for "quantile_bin", "categorical_onehot", "numeric_passthrough", and an integer "n_bins".
+   - PRE-CONFIGURE the feature lists to match the dummy CSV generated by load_data.py so the script runs end-to-end.
+   - Include a loud comment reminding students that this SETTINGS block must be mapped to their real dataset.
 
 3) def main(): with clear step separators and print statements:
+- Directory creation (mkdir)
+- is_example_config check
 - Load
 - Clean
 - Save processed CSV
 - Validate
-- Train test split (done in main.py for clarity)
-- Train model
+- Train test split (done BEFORE any feature fitting. Use stratify=y only if SETTINGS['problem_type']=='classification', else stratify=None. Must include try/except for stratification fallback).
+- Fail-fast feature checks (ensure configured cols exist and explicitly check that columns in SETTINGS["features"]["quantile_bin"] are numeric dtypes).
+- Build feature recipe (ColumnTransformer) using src.features.get_feature_preprocessor
+- Train model using a Pipeline (preprocess + model) fitted on training split only
 - Save model.joblib
 - Evaluate on held out test
 - Inference on example data
@@ -275,7 +293,9 @@ F) Definition of Done (checklist)
 FINAL SELF CHECK (do not print this check in the output)
 - No shell commands in section C
 - src/__init__.py specified as completely empty
-- All function signatures match the Public API Contracts exactly
-- Dummy baseline logic exists so the pipeline runs end to end, including creating a sample CSV file if the raw CSV is missing
+- All function signatures match the Public API Contracts exactly, including Optional[List[str]] typing in features.py.
+- Dummy baseline logic exists so the pipeline runs end to end, including creating a sample CSV file mapped to the SETTINGS dict.
+- evaluate_model returns a single float.
+- run_inference returns a DataFrame with exactly one column named "prediction" and preserves the original index.
 - All internal imports use src. absolute paths
 - Required artifacts use the exact required paths and filenames
