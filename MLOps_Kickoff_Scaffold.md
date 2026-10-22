@@ -1,10 +1,9 @@
-# MLOps Kick-off Scaffold Prompt
+# AI helper: MLOps kick-off scaffold
 
-**When:** Sessions 2 to 5, once your team repo exists (created with "Use this template" from `4-mlops-project-skeleton`)
-**Where:** any AI chatbot (ChatGPT, Claude, Gemini, Copilot Chat, IE NebulaONE) or any coding agent (Copilot agent mode, Claude Code, Codex, Cursor)
-**You get:** a draft of every kick-off file with working plumbing, temporary placeholders and clearly marked spaces for your team's own code and decisions. The drafts never replace your files automatically: **you** copy them in
+Paste this whole file into any AI chatbot (ChatGPT, Claude, Gemini, Copilot, IE NebulaONE) or coding agent (Copilot agent mode, Claude Code, Codex, Cursor) as your first message, or attach it and write `Start`. Then answer its questions as a team.
 
-> **How to use:** copy everything below the line into your AI. Answer its questions. Then read each draft and copy it into your repo, file by file, owner by owner.
+**When:** Sessions 4 to 5, once your team repo exists (created with "Use this template" from `4-mlops-project-skeleton`)
+**You get:** a draft of every kick-off file with working plumbing, temporary placeholders and clearly marked spaces for your team's own code and decisions. The drafts never replace your files automatically: **you** copy them in, file by file, owner by owner
 
 ---
 

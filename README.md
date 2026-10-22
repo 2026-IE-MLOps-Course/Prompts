@@ -12,7 +12,7 @@ These prompts are not answers. They are accelerators.
 
 | Prompt | Sessions | What you get |
 |---|---|---|
-| [`MLOps_Kickoff_Scaffold.md`](MLOps_Kickoff_Scaffold.md) | 2 to 5 | Draft versions of every kick-off skeleton file: working plumbing, temporary placeholders and marked spaces, with guiding questions, for your own code |
+| [`MLOps_Kickoff_Scaffold.md`](MLOps_Kickoff_Scaffold.md) | 4 to 5 | Draft versions of every kick-off skeleton file: working plumbing, temporary placeholders and marked spaces, with guiding questions, for your own code |
 
 ---
 
